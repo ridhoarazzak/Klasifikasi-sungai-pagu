@@ -16,14 +16,14 @@ window.onload = () => {
     opacity: 0.7
   }).addTo(map);
 
-  // Warna kelas sesuai hasil tile Earth Engine
-  const warnaKelas = {
-    sawah: "#b6f876",
-    bukansawah: "#ffed63",
-    sungai: "#5ca8f8",
-    pemukiman: "#ff6c4c",
-    hutan: "#178408"
-  };
+ // Warna kelas sesuai hasil tile Earth Engine
+const warnaKelas = {
+  sawah: "#ffed63",         // kuning
+  bukansawah: "#cccccc",    // abu-abu
+  sungai: "#5ca8f8",
+  pemukiman: "#ff6c4c",
+  hutan: "#178408"
+};
 
   const geojsonURL = "https://raw.githubusercontent.com/ridhoarazzak/Klasifikasi-sungai-pagu/main/klasifikasi_polygon_sungai_pagu.json";
 
