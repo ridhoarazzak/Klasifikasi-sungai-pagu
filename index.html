@@ -2,138 +2,59 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Peta dan Chart Klasifikasi</title>
+  <title>Peta Klasifikasi Sungai Pagu</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <style>
-    #map { height: 60vh; }
-    .legend { background: white; padding: 6px; font-size: 14px; }
-    .legend i { width: 14px; height: 14px; float: left; margin-right: 6px; opacity: 0.7; }
-    #chart-container { width: 100%; max-width: 600px; margin: 20px auto; }
-    button { margin: 10px; padding: 6px 12px; font-size: 14px; }
+    body { margin: 0; font-family: sans-serif; }
+    #map { height: 65vh; }
+    #chart-container { width: 90%; max-width: 600px; margin: 1rem auto; }
+    .legend {
+      background: white;
+      padding: 8px;
+      font-size: 13px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.3);
+      line-height: 18px;
+    }
+    .legend i {
+      width: 14px;
+      height: 14px;
+      float: left;
+      margin-right: 8px;
+      opacity: 0.7;
+    }
+    .controls { text-align: center; margin: 1rem; }
+    button {
+      padding: 8px 14px;
+      font-size: 14px;
+      background-color: #008CBA;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #006f94;
+    }
   </style>
 </head>
 <body>
-  <h2 style="text-align:center;">Peta Klasifikasi Sungai Pagu</h2>
-  <div id="map"></div>
 
-  <div id="chart-container">
-    <canvas id="chart"></canvas>
-    <div style="text-align:center;">
-      <button onclick="downloadCSV()">Download CSV</button>
-    </div>
-  </div>
+<h2 style="text-align:center">Peta Klasifikasi Sungai Pagu</h2>
+<div id="map"></div>
 
-  <!-- Leaflet & Chart.js -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<div class="controls">
+  <button onclick="downloadCSV()">Download CSV</button>
+</div>
 
-  <script>
-    const map = L.map('map').setView([-1.5, 101.3], 11);
+<div id="chart-container">
+  <canvas id="chart"></canvas>
+</div>
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="script.js"></script>
 
-    const warnaKelas = {
-      'sawah': '#ADFF2F',
-      'bukansawah': '#FFD700',
-      'sungai': '#1E90FF',
-      'pemukiman': '#FF4500',
-      'hutan': '#006400'
-    };
-
-    let dataKelas = {}; // Untuk chart dan CSV
-
-    fetch("https://raw.githubusercontent.com/ridhoarazzak/Klasifikasi-sungai-pagu/refs/heads/main/klasifikasi_polygon_sungai_pagu.json")
-      .then(res => res.json())
-      .then(data => {
-        const layer = L.geoJSON(data, {
-          style: feature => {
-            const kelas = feature.properties.kelas || feature.properties.Kelas || 'lainnya';
-            const warna = warnaKelas[kelas] || '#888';
-            return {
-              color: warna,
-              fillColor: warna,
-              weight: 1,
-              fillOpacity: 0.6
-            };
-          },
-          onEachFeature: (feature, layer) => {
-            const props = feature.properties;
-            const kelas = props.kelas || props.Kelas || 'Tidak diketahui';
-            const luas = props['luas_ha'] || props['Luas (ha)'] || 0;
-            layer.bindPopup(`<strong>${kelas}</strong><br>Luas: ${luas.toFixed(2)} ha`);
-
-            // Akumulasi untuk chart
-            if (!dataKelas[kelas]) dataKelas[kelas] = 0;
-            dataKelas[kelas] += parseFloat(luas);
-          }
-        }).addTo(map);
-
-        map.fitBounds(layer.getBounds());
-
-        // Setelah data selesai dimuat, buat chart
-        buatChart();
-      });
-
-    function buatChart() {
-      const labels = Object.keys(dataKelas);
-      const values = labels.map(k => dataKelas[k]);
-      const colors = labels.map(k => warnaKelas[k] || '#888');
-
-      const ctx = document.getElementById('chart').getContext('2d');
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Luas (ha)',
-            data: values,
-            backgroundColor: colors
-          }]
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-            title: {
-              display: true,
-              text: 'Luas Tiap Kelas (ha)'
-            }
-          }
-        }
-      });
-    }
-
-    function downloadCSV() {
-      const rows = [['Kelas', 'Luas (ha)']];
-      for (const [kelas, luas] of Object.entries(dataKelas)) {
-        rows.push([kelas, luas.toFixed(2)]);
-      }
-      const csv = Papa.unparse(rows);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'luas_klasifikasi.csv');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    // Tambahkan legenda
-    const legend = L.control({ position: "bottomright" });
-    legend.onAdd = function () {
-      const div = L.DomUtil.create("div", "legend");
-      div.innerHTML = "<strong>Legenda</strong><br>";
-      for (const [kelas, warna] of Object.entries(warnaKelas)) {
-        div.innerHTML += `<i style="background:${warna}"></i>${kelas}<br>`;
-      }
-      return div;
-    };
-    legend.addTo(map);
-  </script>
 </body>
 </html>
