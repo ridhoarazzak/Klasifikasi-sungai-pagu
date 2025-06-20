@@ -1,24 +1,28 @@
 window.onload = () => {
-  const map = L.map('map').setView([-1.5, 101.3], 11);
+  const map = L.map('map').setView([-1.5785, 101.3123], 12);
+
+  // Global layer refs
+  let geojsonLayer = null;
+  let geeTileLayer = null;
 
   // Basemap
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
   }).addTo(map);
 
-  // ✅ Earth Engine Tile (from your URL)
-  const geeTile = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/c185eaed844ee168dc99d51c8ac536c6-922d7e63267b033c27c24c60af7b5eb0/tiles/{z}/{x}/{y}", {
+  // GEE Tile layer
+  geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/c185eaed844ee168dc99d51c8ac536c6-922d7e63267b033c27c24c60af7b5eb0/tiles/{z}/{x}/{y}", {
     attribution: "Google Earth Engine",
     opacity: 0.7
   }).addTo(map);
 
-  // Warna untuk tiap kelas
+  // Warna kelas sesuai hasil tile Earth Engine
   const warnaKelas = {
-    sawah: "#ADFF2F",
-    bukansawah: "#FFD700",
-    sungai: "#1E90FF",
-    pemukiman: "#FF4500",
-    hutan: "#006400"
+    sawah: "#b6f876",
+    bukansawah: "#ffed63",
+    sungai: "#5ca8f8",
+    pemukiman: "#ff6c4c",
+    hutan: "#178408"
   };
 
   const geojsonURL = "https://raw.githubusercontent.com/ridhoarazzak/Klasifikasi-sungai-pagu/main/klasifikasi_polygon_sungai_pagu.json";
@@ -28,14 +32,14 @@ window.onload = () => {
     .then(data => {
       let dataKelas = {};
 
-      const layer = L.geoJSON(data, {
+      geojsonLayer = L.geoJSON(data, {
         style: f => {
           const k = f.properties.Kelas;
           return {
             color: warnaKelas[k] || "#888",
             fillColor: warnaKelas[k] || "#888",
             weight: 1,
-            fillOpacity: 0.5
+            fillOpacity: 0.4
           };
         },
         onEachFeature: (feature, layer) => {
@@ -46,7 +50,7 @@ window.onload = () => {
         }
       }).addTo(map);
 
-      map.fitBounds(layer.getBounds());
+      map.fitBounds(geojsonLayer.getBounds());
       buatChart(dataKelas);
       tambahLegend();
       window.downloadCSV = () => exportCSV(dataKelas);
@@ -109,4 +113,20 @@ window.onload = () => {
     };
     legend.addTo(map);
   }
+
+  window.toggleLayer = function (layerName) {
+    if (layerName === "geojson") {
+      if (map.hasLayer(geojsonLayer)) {
+        map.removeLayer(geojsonLayer);
+      } else {
+        map.addLayer(geojsonLayer);
+      }
+    } else if (layerName === "tile") {
+      if (map.hasLayer(geeTileLayer)) {
+        map.removeLayer(geeTileLayer);
+      } else {
+        map.addLayer(geeTileLayer);
+      }
+    }
+  };
 };
