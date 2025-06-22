@@ -1,5 +1,5 @@
 window.onload = () => {
-  const map = L.map('map').setView([-1.5785, 101.3123], 12);
+  const map = L.map('map').setView([-1.48, 101.06], 12);
 
   // Global layer refs
   let geojsonLayer = null;
