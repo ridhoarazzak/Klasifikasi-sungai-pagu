@@ -1,7 +1,6 @@
 window.onload = () => {
   const map = L.map('map').setView([-1.48, 101.06], 12);
 
-  // Global layer refs
   let geojsonLayer = null;
   let geeTileLayer = null;
 
@@ -10,20 +9,19 @@ window.onload = () => {
     attribution: '© OpenStreetMap'
   }).addTo(map);
 
-  // GEE Tile layer
+  // GEE Tile Layer
   geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/c185eaed844ee168dc99d51c8ac536c6-922d7e63267b033c27c24c60af7b5eb0/tiles/{z}/{x}/{y}", {
     attribution: "Google Earth Engine",
     opacity: 0.7
   }).addTo(map);
 
- // Warna kelas sesuai hasil tile Earth Engine
-const warnaKelas = {
-  sawah: "#ffed63",         // kuning
-  bukansawah: "#cccccc",    // abu-abu
-  sungai: "#5ca8f8",
-  pemukiman: "#ff6c4c",
-  hutan: "#178408"
-};
+  const warnaKelas = {
+    sawah: "#ffed63",
+    bukansawah: "#cccccc",
+    sungai: "#5ca8f8",
+    pemukiman: "#ff6c4c",
+    hutan: "#178408"
+  };
 
   const geojsonURL = "https://raw.githubusercontent.com/ridhoarazzak/Klasifikasi-sungai-pagu/main/klasifikasi_polygon_sungai_pagu.json";
 
@@ -43,9 +41,14 @@ const warnaKelas = {
           };
         },
         onEachFeature: (feature, layer) => {
-          const k = feature.properties.Kelas;
-          const luas = feature.properties["Luas (ha)"] || 0;
+          const k = feature.properties.Kelas || "Tidak Diketahui";
+
+          // Hitung luas dengan turf.js (m2), konversi ke hektar
+          const luas_m2 = turf.area(feature);
+          const luas = luas_m2 / 10000;
+
           dataKelas[k] = (dataKelas[k] || 0) + luas;
+
           layer.bindPopup(`<b style="color:${warnaKelas[k] || "#000"}">${k}</b><br>Luas: ${luas.toFixed(2)} ha`);
         }
       }).addTo(map);
@@ -53,7 +56,7 @@ const warnaKelas = {
       map.fitBounds(geojsonLayer.getBounds());
       buatChart(dataKelas);
       tambahLegend();
-      window.downloadCSV = () => exportCSV(dataKelas);
+      window.downloadCSV = () => exportCSV(dataKelas);  // tombol bisa panggil ini
     });
 
   function buatChart(data) {
@@ -90,7 +93,7 @@ const warnaKelas = {
     for (const [k, v] of Object.entries(data)) {
       rows.push([k, v.toFixed(2)]);
     }
-    const csv = Papa.unparse(rows);
+    const csv = Papa.unparse(rows);  // pastikan papaParse sudah dimuat di HTML
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
