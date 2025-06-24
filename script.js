@@ -9,8 +9,8 @@ window.onload = () => {
     attribution: '© OpenStreetMap'
   }).addTo(map);
 
-  // GEE Tile Layer
-  geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/c185eaed844ee168dc99d51c8ac536c6-922d7e63267b033c27c24c60af7b5eb0/tiles/{z}/{x}/{y}", {
+  // ✅ GEE Tile Layer (yang baru)
+  geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/c185eaed844ee168dc99d51c8ac536c6-3378754a003e4da8571a50efdfcd0c02/tiles/{z}/{x}/{y}", {
     attribution: "Google Earth Engine",
     opacity: 0.7
   }).addTo(map);
@@ -43,7 +43,6 @@ window.onload = () => {
         onEachFeature: (feature, layer) => {
           const k = feature.properties.Kelas || "Tidak Diketahui";
 
-          // Hitung luas dengan turf.js (m2), konversi ke hektar
           const luas_m2 = turf.area(feature);
           const luas = luas_m2 / 10000;
 
@@ -56,7 +55,7 @@ window.onload = () => {
       map.fitBounds(geojsonLayer.getBounds());
       buatChart(dataKelas);
       tambahLegend();
-      window.downloadCSV = () => exportCSV(dataKelas);  // tombol bisa panggil ini
+      window.downloadCSV = () => exportCSV(dataKelas);
     });
 
   function buatChart(data) {
@@ -93,7 +92,7 @@ window.onload = () => {
     for (const [k, v] of Object.entries(data)) {
       rows.push([k, v.toFixed(2)]);
     }
-    const csv = Papa.unparse(rows);  // pastikan papaParse sudah dimuat di HTML
+    const csv = Papa.unparse(rows);
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
