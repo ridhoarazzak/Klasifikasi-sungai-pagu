@@ -69,6 +69,7 @@
 <!-- Turf.js untuk menghitung luas -->
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
 
+<!-- Script utama -->
 <script>
 window.onload = () => {
   const map = L.map('map').setView([-1.48, 101.06], 12);
@@ -81,8 +82,8 @@ window.onload = () => {
     attribution: '© OpenStreetMap'
   }).addTo(map);
 
-  // GEE Tile Layer
-  geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/c185eaed844ee168dc99d51c8ac536c6-922d7e63267b033c27c24c60af7b5eb0/tiles/{z}/{x}/{y}", {
+  // ✅ GEE Tile Layer (yang sudah diperbarui)
+  geeTileLayer = L.tileLayer("https://earthengine.googleapis.com/v1/projects/ee-mrgridhoarazzak/maps/c185eaed844ee168dc99d51c8ac536c6-3378754a003e4da8571a50efdfcd0c02/tiles/{z}/{x}/{y}", {
     attribution: "Google Earth Engine",
     opacity: 0.7
   }).addTo(map);
@@ -115,7 +116,6 @@ window.onload = () => {
         onEachFeature: (feature, layer) => {
           const k = feature.properties.Kelas || "Tidak Diketahui";
 
-          // Hitung luas dengan turf.js (meter persegi), konversi ke hektar
           const luas_m2 = turf.area(feature);
           const luas = luas_m2 / 10000;
 
@@ -128,7 +128,7 @@ window.onload = () => {
       map.fitBounds(geojsonLayer.getBounds());
       buatChart(dataKelas);
       tambahLegend();
-      window.downloadCSV = () => exportCSV(dataKelas);  // tombol bisa panggil ini
+      window.downloadCSV = () => exportCSV(dataKelas);
     });
 
   function buatChart(data) {
@@ -208,4 +208,4 @@ window.onload = () => {
 </script>
 
 </body>
-  </html>
+</html>
